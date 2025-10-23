@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matcha Creator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Użycie własnej czcionki Inter dla lepszej estetyki */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        /* Styl kubka */
+        .cup-container {
+            position: relative;
+            width: 200px;
+            height: 250px;
+            margin: 30px auto;
+        }
+
+        /* SVG Matchy */
+        #matcha-level {
+            transition: all 0.3s ease-out; /* Płynna animacja napełniania */
+            transform-origin: bottom;
+            transform: scaleY(0); /* Startuje jako puste */
+            opacity: 0.9;
+        }
+
+        /* Styl przycisku i interakcji */
+        .fill-button {
+            transition: transform 0.1s ease-out, background-color 0.2s;
+            cursor: pointer;
+            box-shadow: 0 4px #1c4b26; /* Cień 3D */
+            user-select: none;
+        }
+        .fill-button:active {
+            transform: translateY(4px); /* Efekt wciśnięcia */
+            box-shadow: 0 0 #1c4b26;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="text-3xl font-bold mb-4 text-gray-800">Matcha Creator</h1>
+    <p class="text-sm text-gray-500 mb-6">Trzymaj zielony przycisk, aby napełnić kubek.</p>
+
+    <!-- KUBEK SVG -->
+    <div class="cup-container">
+        <!-- Rysowanie kubka (stała część) -->
+        <svg viewBox="0 0 100 130" class="absolute inset-0" fill="none" stroke="#333" stroke-width="2">
+            <!-- Uchwyt kubka -->
+            <path d="M 85 45 C 95 40, 100 55, 95 65 C 90 75, 85 70, 85 65" stroke-linecap="round"/>
+            <!-- Kształt kubka (zostawia przestrzeń na Matchę w środku) -->
+            <path d="M 20 20 L 80 20 C 85 20, 85 25, 80 25 L 20 25 C 15 25, 15 20, 20 20 Z" fill="#E4E4E4" stroke="#777"/>
+            <path d="M 15 25 L 15 110 C 15 120, 20 120, 25 120 L 75 120 C 80 120, 85 120, 85 110 L 85 25" fill="#FFFFFF" stroke="#777"/>
+        </svg>
+
+        <!-- Poziom Matchy (dynamiczna część) -->
+        <svg viewBox="0 0 100 130" class="absolute inset-0 overflow-hidden">
+            <rect id="matcha-level" x="15" y="25" width="70" height="95" rx="5" ry="5" fill="#4CAF50"/>
+        </svg>
+    </div>
+
+    <!-- KONTROLKI -->
+    <div class="mt-6 flex flex-col items-center space-y-4">
+        
+        <!-- Przycisk Napełniania -->
+        <button id="fillButton" 
+                class="fill-button bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-10 rounded-full shadow-lg text-lg"
+                onmousedown="startFilling()" 
+                onmouseup="stopFilling()"
+                ontouchstart="startFilling(event)"
+                ontouchend="stopFilling()">
+            Napełnij Kubek
+        </button>
+        
+        <!-- Przycisk Opróżniania (Reset) -->
+        <button id="emptyButton" 
+                class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-full shadow-lg text-sm transition-colors"
+                onclick="emptyCup()">
+            Opróżnij Kubek
+        </button>
+
+        <!-- Wybór Koloru Matchy -->
+        <div class="flex space-x-2 p-2 bg-gray-100 rounded-lg shadow-inner mt-4">
+            <button onclick="changeColor('#60B247')" class="w-8 h-8 rounded-full shadow-md transition-transform transform hover:scale-110" style="background-color: #60B247; border: 2px solid #3c7028;"></button>
+            <button onclick="changeColor('#38761d')" class="w-8 h-8 rounded-full shadow-md transition-transform transform hover:scale-110" style="background-color: #38761d; border: 2px solid #234711;"></button>
+            <button onclick="changeColor('#99C481')" class="w-8 h-8 rounded-full shadow-md transition-transform transform hover:scale-110" style="background-color: #99C481; border: 2px solid #5a754b;"></button>
+            <button onclick="changeColor('#79B979')" class="w-8 h-8 rounded-full shadow-md transition-transform transform hover:scale-110" style="background-color: #79B979; border: 2px solid #4a704a;"></button>
+        </div>
+        
+        <!-- Panel statusu -->
+        <p id="status" class="text-sm text-gray-600 pt-2">Kubek jest pusty.</p>
+    </div>
+</div>
+
+<script>
+    const matchaLevel = document.getElementById('matcha-level');
+    const statusText = document.getElementById('status');
+    const FILL_SPEED = 0.005; 
+    const MAX_SCALE = 1.0;
+    const MIN_SCALE = 0.0;
+    
+    let currentScale = 0.0;
+    let animationFrameId = null;
+    let isFilling = false;
+    let currentColor = '#60B247'; 
+    
+    // Ustawia początkowy stan graficzny
+    matchaLevel.style.transform = `scaleY(${MIN_SCALE})`;
+
+    /**
+     * Zmienia kolor Matchy w kubku.
+     * @param {string} colorHex Nowy kolor w formacie HEX.
+     */
+    function changeColor(colorHex) {
+        currentColor = colorHex;
+        matchaLevel.style.fill = currentColor;
+        statusText.textContent = `Kolor zmieniony. Poziom: ${Math.round(currentScale * 100)}%`;
+    }
+
+    /**
+     * Główna pętla animacji napełniania.
+     */
+    function updateFill() {
+        if (!isFilling) return;
+
+        // Powiększanie poziomu (skala)
+        currentScale += FILL_SPEED;
+        
+        if (currentScale >= MAX_SCALE) {
+            currentScale = MAX_SCALE;
+            stopFilling();
+            statusText.textContent = "Kubek jest PEŁNY!";
+        } else {
+            statusText.textContent = `Napełnianie... ${Math.round(currentScale * 100)}%`;
+        }
+
+        // Zastosowanie nowej skali
+        matchaLevel.style.transform = `scaleY(${currentScale})`;
+
+        // Kontynuacja pętli
+        animationFrameId = requestAnimationFrame(updateFill);
+    }
+
+    /**
+     * Rozpoczyna napełnianie po naciśnięciu przycisku.
+     */
+    function startFilling(event) {
+        if (event && event.preventDefault) {
+            event.preventDefault(); 
+        }
+        if (currentScale >= MAX_SCALE) return;
+        
+        if (!isFilling) {
+            isFilling = true;
+            animationFrameId = requestAnimationFrame(updateFill);
+        }
+    }
+
+    /**
+     * Zatrzymuje napełnianie po zwolnieniu przycisku.
+     */
+    function stopFilling() {
+        if (isFilling) {
+            isFilling = false;
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            if (currentScale < MAX_SCALE) {
+                statusText.textContent = `Napełnianie wstrzymane. ${Math.round(currentScale * 100)}%`;
+            }
+        }
+    }
+
+    /**
+     * Opróżnia kubek (resetuje poziom).
+     */
+    function emptyCup() {
+        stopFilling(); // Zatrzymaj ewentualne napełnianie
+        currentScale = MIN_SCALE;
+        matchaLevel.style.transform = `scaleY(${MIN_SCALE})`;
+        statusText.textContent = "Kubek jest pusty.";
+    }
+
+    // Ustawienie początkowego koloru
+    window.onload = () => {
+        changeColor(currentColor);
+    };
+
+</script>
+
+</body>
+</html>
