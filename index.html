@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZAB Ownership Stats</title>
+    <title>ZAB Ownership High Precision</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
@@ -33,18 +33,14 @@
             transform: rotate(-90deg);
             transform-origin: 50% 50%;
         }
-
-        .shareholder-row:last-child {
-            border-bottom: none;
-        }
     </style>
 </head>
 <body>
 
 <div class="card">
     <div class="mb-8">
-        <h1 class="text-3xl font-black text-slate-800 uppercase tracking-tighter">Struktura Żabki</h1>
-        <p class="text-slate-400 text-sm">Porównaj swoje udziały z rynkiem</p>
+        <h1 class="text-3xl font-black text-slate-800 uppercase tracking-tighter">Precyzyjny Akcjonariat</h1>
+        <p class="text-slate-400 text-sm">Twoje udziały z wysoką dokładnością</p>
     </div>
 
     <div class="relative flex items-center justify-center mb-10">
@@ -64,8 +60,8 @@
         </svg>
         
         <div class="absolute inset-0 flex flex-col items-center justify-center">
-            <span id="percent-label" class="text-4xl font-black text-slate-800 tracking-tighter">0%</span>
-            <span class="text-[10px] text-green-600 font-bold uppercase tracking-widest bg-green-50 px-2 py-0.5 rounded">Twoje Akcje</span>
+            <span id="percent-label" class="text-2xl font-black text-slate-800 tracking-tighter">0.000000%</span>
+            <span class="text-[10px] text-green-600 font-bold uppercase tracking-widest bg-green-50 px-2 py-0.5 rounded mt-1">Udział %</span>
         </div>
     </div>
 
@@ -73,46 +69,35 @@
         <input 
             type="number" 
             id="shares" 
-            placeholder="Ile masz akcji? (ZAB)" 
+            step="1"
+            placeholder="Liczba akcji (ZAB)" 
             class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-5 text-center text-2xl font-bold text-slate-700 focus:border-green-500 focus:bg-white transition-all outline-none shadow-sm"
             oninput="updateChart()"
         >
     </div>
 
     <div class="text-left bg-slate-50 rounded-3xl p-6">
-        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-200 pb-2">Główni Akcjonariusze</h3>
+        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-200 pb-2">Porównanie</h3>
         
         <div class="space-y-4">
-            <div class="shareholder-row flex justify-between items-center border-b border-slate-100 pb-3">
-                <div>
-                    <p class="text-sm font-bold text-slate-700">CVC Capital Partners</p>
-                    <p class="text-[10px] text-slate-400 uppercase font-medium">Fundusz Private Equity</p>
-                </div>
-                <p class="text-sm font-black text-slate-600">~40.0%</p>
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <span class="text-sm font-bold text-slate-700">CVC Capital Partners</span>
+                <span class="text-sm font-black text-slate-600">40.00%</span>
             </div>
 
-            <div class="shareholder-row flex justify-between items-center border-b border-slate-100 pb-3">
-                <div>
-                    <p class="text-sm font-bold text-green-600 italic">Free Float (Inwestorzy)</p>
-                    <p class="text-[10px] text-slate-400 uppercase font-medium">Giełda / Tacy jak Ty</p>
-                </div>
-                <p class="text-sm font-black text-green-600">~35.0%</p>
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <span class="text-sm font-bold text-green-600 italic">Inni Inwestorzy (Free Float)</span>
+                <span class="text-sm font-black text-green-600">35.00%</span>
             </div>
 
-            <div class="shareholder-row flex justify-between items-center border-b border-slate-100 pb-3">
-                <div>
-                    <p class="text-sm font-bold text-slate-700">Zarząd i Pozostali</p>
-                    <p class="text-[10px] text-slate-400 uppercase font-medium">Partnerzy strategiczni</p>
+            <div id="user-row" class="hidden pt-2">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                        <p class="text-sm font-black text-slate-800 uppercase">Twój dokładny udział:</p>
+                    </div>
                 </div>
-                <p class="text-sm font-black text-slate-600">~25.0%</p>
-            </div>
-
-            <div id="user-row" class="hidden flex justify-between items-center pt-2">
-                <div class="flex items-center">
-                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                    <p class="text-sm font-black text-slate-800 uppercase">Ty (Twoje udziały)</p>
-                </div>
-                <p id="exact-percent" class="text-sm font-mono font-bold text-green-600">0.00000000%</p>
+                <p id="exact-percent" class="text-lg font-mono font-bold text-green-600 mt-1">0.00000000%</p>
             </div>
         </div>
     </div>
@@ -125,7 +110,7 @@
     const TOTAL_SHARES = 1000000000;
 
     function setProgress(percent) {
-        // Skalowanie wizualne (logarytmiczne), aby pokazać progres drobnych inwestorów
+        // Skalowanie logarytmiczne, żeby widzieć ruch na kole nawet przy małych ilościach
         let visualPercent = percent > 0 ? (Math.log10(percent * TOTAL_SHARES / 100 + 1) / 9) * 100 : 0;
         if(visualPercent > 100) visualPercent = 100;
 
@@ -139,15 +124,13 @@
         
         const ownership = (val / TOTAL_SHARES) * 100;
         
-        // Aktualizacja etykiet
-        document.getElementById('percent-label').textContent = 
-            ownership < 0.001 && ownership > 0 ? "<0.01%" : ownership.toFixed(2) + "%";
+        // Główny licznik: 6 miejsc po przecinku
+        document.getElementById('percent-label').textContent = ownership.toFixed(6) + "%";
         
+        // Dolny licznik: 8 miejsc po przecinku
         document.getElementById('exact-percent').textContent = ownership.toFixed(8) + "%";
         
-        // Pokaż wiersz "Ty", jeśli wpisano wartość
         userRow.classList.toggle('hidden', val <= 0);
-
         setProgress(ownership);
     }
 </script>
