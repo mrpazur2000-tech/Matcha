@@ -2,138 +2,76 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZAB Ownership High Precision</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Informacje o Spółkach</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f1f5f9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .card {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 2.5rem;
-            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.15);
-            width: 100%;
-            max-width: 500px;
-            text-align: center;
-        }
-
-        .progress-ring__circle {
-            transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
-            transform: rotate(-90deg);
-            transform-origin: 50% 50%;
-        }
+        body { font-family: sans-serif; margin: 40px; line-height: 1.6; }
+        .box { border: 1px solid #ccc; padding: 20px; border-radius: 8px; max-width: 400px; margin-top: 20px; display: none; }
+        select { padding: 8px; width: 100%; max-width: 420px; }
+        h2 { color: #2c3e50; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div class="mb-8">
-        <h1 class="text-3xl font-black text-slate-800 uppercase tracking-tighter">Precyzyjny Akcjonariat</h1>
-        <p class="text-slate-400 text-sm">Twoje udziały z wysoką dokładnością</p>
+    <h2>Wybierz spółkę z listy:</h2>
+    
+    <select id="listaSpolek">
+        <option value="">-- Ładowanie danych... --</option>
+    </select>
+
+    <div id="detale" class="box">
+        <h3 id="nazwaSpolki"></h3>
+        <p><strong>ISIN:</strong> <span id="isin"></span></p>
+        <p><strong>Sektor:</strong> <span id="sektor"></span></p>
+        <p><strong>Liczba akcji:</strong> <span id="akcje"></span></p>
     </div>
 
-    <div class="relative flex items-center justify-center mb-10">
-        <svg width="240" height="240">
-            <circle stroke="#f1f5f9" stroke-width="14" fill="transparent" r="100" cx="120" cy="120"/>
-            <circle
-                id="progress-circle"
-                class="progress-ring__circle"
-                stroke="#22c55e"
-                stroke-width="14"
-                stroke-linecap="round"
-                fill="transparent"
-                r="100"
-                cx="120"
-                cy="120"
-                style="stroke-dasharray: 628.32; stroke-dashoffset: 628.32;"/>
-        </svg>
-        
-        <div class="absolute inset-0 flex flex-col items-center justify-center">
-            <span id="percent-label" class="text-2xl font-black text-slate-800 tracking-tighter">0.000000%</span>
-            <span class="text-[10px] text-green-600 font-bold uppercase tracking-widest bg-green-50 px-2 py-0.5 rounded mt-1">Udział %</span>
-        </div>
-    </div>
+    <script>
+        const select = document.getElementById('listaSpolek');
+        const box = document.getElementById('detale');
+        let daneSpolek = [];
 
-    <div class="mb-10">
-        <input 
-            type="number" 
-            id="shares" 
-            step="1"
-            placeholder="Liczba akcji (ZAB)" 
-            class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-5 text-center text-2xl font-bold text-slate-700 focus:border-green-500 focus:bg-white transition-all outline-none shadow-sm"
-            oninput="updateChart()"
-        >
-    </div>
+        // 1. Pobieranie danych z pliku Dane/Dane.json
+        fetch('Dane/Dane.json')
+            .then(response => {
+                if (!response.ok) throw new Error('Nie znaleziono pliku JSON');
+                return response.json();
+            })
+            .then(data => {
+                daneSpolek = data;
+                // Czyścimy komunikat o ładowaniu
+                select.innerHTML = '<option value="">Wybierz spółkę...</option>';
+                
+                // Dodajemy każdą spółkę do listy <select>
+                data.forEach((spolka, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = `${spolka.ticker} (${spolka.isin})`;
+                    select.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Błąd:', error);
+                select.innerHTML = '<option value="">Błąd ładowania danych</option>';
+            });
 
-    <div class="text-left bg-slate-50 rounded-3xl p-6">
-        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-200 pb-2">Porównanie</h3>
-        
-        <div class="space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <span class="text-sm font-bold text-slate-700">CVC Capital Partners</span>
-                <span class="text-sm font-black text-slate-600">40.00%</span>
-            </div>
+        // 2. Reakcja na wybór z listy
+        select.addEventListener('change', (e) => {
+            const index = e.target.value;
+            
+            if (index === "") {
+                box.style.display = 'none';
+                return;
+            }
 
-            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <span class="text-sm font-bold text-green-600 italic">Inni Inwestorzy (Free Float)</span>
-                <span class="text-sm font-black text-green-600">35.00%</span>
-            </div>
-
-            <div id="user-row" class="hidden pt-2">
-                <div class="flex justify-between items-center">
-                    <div class="flex items-center">
-                        <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                        <p class="text-sm font-black text-slate-800 uppercase">Twój dokładny udział:</p>
-                    </div>
-                </div>
-                <p id="exact-percent" class="text-lg font-mono font-bold text-green-600 mt-1">0.00000000%</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    const circle = document.getElementById('progress-circle');
-    const radius = circle.r.baseVal.value;
-    const circumference = radius * 2 * Math.PI;
-    const TOTAL_SHARES = 1000000000;
-
-    function setProgress(percent) {
-        // Skalowanie logarytmiczne, żeby widzieć ruch na kole nawet przy małych ilościach
-        let visualPercent = percent > 0 ? (Math.log10(percent * TOTAL_SHARES / 100 + 1) / 9) * 100 : 0;
-        if(visualPercent > 100) visualPercent = 100;
-
-        const offset = circumference - (visualPercent / 100 * circumference);
-        circle.style.strokeDashoffset = offset;
-    }
-
-    function updateChart() {
-        const val = parseFloat(document.getElementById('shares').value) || 0;
-        const userRow = document.getElementById('user-row');
-        
-        const ownership = (val / TOTAL_SHARES) * 100;
-        
-        // Główny licznik: 6 miejsc po przecinku
-        document.getElementById('percent-label').textContent = ownership.toFixed(6) + "%";
-        
-        // Dolny licznik: 8 miejsc po przecinku
-        document.getElementById('exact-percent').textContent = ownership.toFixed(8) + "%";
-        
-        userRow.classList.toggle('hidden', val <= 0);
-        setProgress(ownership);
-    }
-</script>
+            const info = daneSpolek[index];
+            document.getElementById('nazwaSpolki').textContent = info.ticker;
+            document.getElementById('isin').textContent = info.isin;
+            document.getElementById('sektor').textContent = info.sektor;
+            document.getElementById('akcje').textContent = info.liczba_akcji.toLocaleString(); // Ładne formatowanie liczb
+            
+            box.style.display = 'block';
+        });
+    </script>
 
 </body>
 </html>
