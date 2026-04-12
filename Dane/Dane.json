@@ -1,0 +1,37 @@
+[
+  {
+    "lp": 1,
+    "ticker": "PKOBP",
+    "isin": "PLPKO0000016",
+    "sektor": 111,
+    "liczba_akcji": 1250000000
+  },
+  {
+    "lp": 2,
+    "ticker": "PKNORLEN",
+    "isin": "PLPKN0000018",
+    "sektor": 211,
+    "liczba_akcji": 1160942049
+  },
+  {
+    "lp": 3,
+    "ticker": "SANPL",
+    "isin": "PLBZ00000044",
+    "sektor": 111,
+    "liczba_akcji": 102189314
+  },
+  {
+    "lp": 4,
+    "ticker": "PZU",
+    "isin": "PLPZU0000011",
+    "sektor": 121,
+    "liczba_akcji": 863523000
+  },
+  {
+    "lp": 5,
+    "ticker": "DINOPL",
+    "isin": "PLDINPL00011",
+    "sektor": 621,
+    "liczba_akcji": 98040000
+  }
+]
