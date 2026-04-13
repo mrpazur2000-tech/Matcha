@@ -2,76 +2,195 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Informacje o Spółkach</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mój Procent - Inwestorski Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="description" content="Kalkulator akcji GPW - sprawdź jaki procent udziałów w spółce posiadasz. Kursy na żywo i dane o emisjach.">
+    <meta name="keywords" content="GPW, akcje, kalkulator akcji, giełda, mój procent, żabka, allegro">
     <style>
-        body { font-family: sans-serif; margin: 40px; line-height: 1.6; }
-        .box { border: 1px solid #ccc; padding: 20px; border-radius: 8px; max-width: 400px; margin-top: 20px; display: none; }
-        select { padding: 8px; width: 100%; max-width: 420px; }
-        h2 { color: #2c3e50; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; margin: 0; padding: 0; }
+        .progress-ring__circle { transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1); transform: rotate(-90deg); transform-origin: 50% 50%; }
+        .card-container { background: white; border-radius: 2.5rem; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.15); overflow: hidden; width: 100%; max-width: 900px; }
+        #user-row { transition: all 0.3s ease-in-out; }
     </style>
 </head>
-<body>
+<body class="py-10 px-4">
 
-    <h2>Wybierz spółkę z listy:</h2>
-    
-    <select id="listaSpolek">
-        <option value="">-- Ładowanie danych... --</option>
-    </select>
+<div class="max-w-[1400px] mx-auto flex flex-col lg:flex-row justify-center items-start gap-8">
 
-    <div id="detale" class="box">
-        <h3 id="nazwaSpolki"></h3>
-        <p><strong>ISIN:</strong> <span id="isin"></span></p>
-        <p><strong>Sektor:</strong> <span id="sektor"></span></p>
-        <p><strong>Liczba akcji:</strong> <span id="akcje"></span></p>
-    </div>
+    <aside class="hidden lg:block w-[160px] sticky top-10 h-fit">
+        <div class="bg-white/50 backdrop-blur-sm rounded-2xl p-0 border border-slate-200 text-center shadow-sm ad-slot overflow-hidden">
+            <p class="text-[9px] font-bold text-slate-400 uppercase py-1">Reklama</p>
+            <script>
+                atOptions = {
+                    'key' : 'd8504387dea9fe98f8b68e912138423c',
+                    'format' : 'iframe',
+                    'height' : 600,
+                    'width' : 160,
+                    'params' : {}
+                };
+            </script>
+            <script src="https://www.highperformanceformat.com/d8504387dea9fe98f8b68e912138423c/invoke.js"></script>
+        </div>
+    </aside>
 
-    <script>
-        const select = document.getElementById('listaSpolek');
-        const box = document.getElementById('detale');
-        let daneSpolek = [];
+    <main class="flex-1 w-full flex flex-col items-center">
+        <div class="card-container">
+            <div class="grid grid-cols-1 md:grid-cols-2">
 
-        // 1. Pobieranie danych z pliku Dane/Dane.json
-        fetch('Dane/Dane.json')
-            .then(response => {
-                if (!response.ok) throw new Error('Nie znaleziono pliku JSON');
-                return response.json();
-            })
-            .then(data => {
-                daneSpolek = data;
-                // Czyścimy komunikat o ładowaniu
-                select.innerHTML = '<option value="">Wybierz spółkę...</option>';
-                
-                // Dodajemy każdą spółkę do listy <select>
-                data.forEach((spolka, index) => {
-                    const option = document.createElement('option');
-                    option.value = index;
-                    option.textContent = `${spolka.ticker} (${spolka.isin})`;
-                    select.appendChild(option);
-                });
-            })
-            .catch(error => {
-                console.error('Błąd:', error);
-                select.innerHTML = '<option value="">Błąd ładowania danych</option>';
+                <div class="p-8 border-b md:border-b-0 md:border-r border-slate-100">
+                    <div class="mb-8">
+                        <h1 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Mój Procent</h1>
+                        <p class="text-slate-400 text-[10px] uppercase font-bold tracking-widest">Kalkulator Udziałów</p>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2">Wybierz spółkę</label>
+                            <select id="company-select" onchange="updateChart()" class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-bold text-slate-700 outline-none focus:border-green-500 transition-all shadow-sm"></select>
+                        </div>
+
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2">Twoje akcje</label>
+                            <input type="number" id="shares" placeholder="Wpisz ilość..." class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 text-xl font-bold text-slate-700 focus:border-green-500 outline-none transition-all shadow-sm" oninput="updateChart()">
+                        </div>
+
+                        <div class="relative flex items-center justify-center py-4">
+                            <svg width="150" height="150">
+                                <circle stroke="#f1f5f9" stroke-width="10" fill="transparent" r="65" cx="75" cy="75"/>
+                                <circle id="progress-circle" class="progress-ring__circle" stroke="#22c55e" stroke-width="10" stroke-linecap="round" fill="transparent" r="65" cx="75" cy="75" style="stroke-dasharray: 408.4; stroke-dashoffset: 408.4;"/>
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                <span id="percent-label" class="text-2xl font-black text-slate-800">0%</span>
+                                <span class="text-[8px] text-green-600 font-bold uppercase tracking-widest">Udział</span>
+                            </div>
+                        </div>
+
+                        <div id="user-row" class="hidden bg-green-500 rounded-2xl p-4 shadow-lg shadow-green-200 mt-4">
+                            <p class="text-[9px] font-bold text-white/80 uppercase mb-1 text-center">Twój dokładny procent</p>
+                            <p id="exact-percent" class="text-sm font-mono font-bold text-white text-center">0.00000000%</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-8 bg-slate-50 flex flex-col justify-between">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Dane rynkowe (Live)</p>
+
+                        <div id="tv_symbol_info" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 min-h-[160px] flex items-center justify-center overflow-hidden">
+                            <p class="text-slate-300 text-xs font-bold italic text-center">Wybierz spółkę...</p>
+                        </div>
+
+                        <div class="mt-6 space-y-4">
+                            <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+                                <p class="text-[9px] font-bold text-slate-400 uppercase">Łączna liczba akcji (Emisja)</p>
+                                <p id="total-shares-label" class="text-lg font-black text-slate-700">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-[9px] text-slate-400 leading-tight mt-6">
+                        Dane pochodzą z oficjalnych raportów okresowych spółek. Kursy i logotypy dostarcza TradingView.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="w-full max-w-[900px] mt-8 bg-white/50 backdrop-blur-sm rounded-3xl p-6 border border-slate-200 text-center">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Reklama</p>
+            <script async="async" data-cfasync="false" src="https://pl29142016.profitablecpmratenetwork.com/9e80bada0f50a112678147baeec210fa/invoke.js"></script>
+            <div id="container-9e80bada0f50a112678147baeec210fa"></div>
+        </div>
+    </main>
+
+    <aside class="hidden lg:block w-[160px] sticky top-10 h-fit">
+        <div class="bg-white/50 backdrop-blur-sm rounded-2xl p-0 border border-slate-200 text-center shadow-sm ad-slot overflow-hidden">
+            <p class="text-[9px] font-bold text-slate-400 uppercase py-1">Reklama</p>
+            <script>
+                atOptions = {
+                    'key' : 'd8504387dea9fe98f8b68e912138423c',
+                    'format' : 'iframe',
+                    'height' : 600,
+                    'width' : 160,
+                    'params' : {}
+                };
+            </script>
+            <script src="https://www.highperformanceformat.com/d8504387dea9fe98f8b68e912138423c/invoke.js"></script>
+        </div>
+    </aside>
+</div>
+
+<script>
+    const circle = document.getElementById('progress-circle');
+    const circumference = 65 * 2 * Math.PI;
+    const select = document.getElementById('company-select');
+    let database = [];
+    let lastSymbol = "";
+
+    async function loadData() {
+        try {
+            const response = await fetch('spolki.json');
+            database = await response.json();
+            database.forEach((company, index) => {
+                const opt = document.createElement('option');
+                opt.value = index;
+                opt.innerHTML = company.name;
+                select.appendChild(opt);
             });
+            updateChart(true);
+        } catch (e) { console.error(e); }
+    }
 
-        // 2. Reakcja na wybór z listy
-        select.addEventListener('change', (e) => {
-            const index = e.target.value;
-            
-            if (index === "") {
-                box.style.display = 'none';
-                return;
-            }
+    function renderSymbolWidget(symbol) {
+        if (symbol === lastSymbol) return;
+        lastSymbol = symbol;
 
-            const info = daneSpolek[index];
-            document.getElementById('nazwaSpolki').textContent = info.ticker;
-            document.getElementById('isin').textContent = info.isin;
-            document.getElementById('sektor').textContent = info.sektor;
-            document.getElementById('akcje').textContent = info.liczba_akcji.toLocaleString(); // Ładne formatowanie liczb
-            
-            box.style.display = 'block';
-        });
-    </script>
+        const container = document.getElementById('tv_symbol_info');
+        container.innerHTML = '';
+        const widgetScript = document.createElement('script');
+        widgetScript.type = 'text/javascript';
+        widgetScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-symbol-info.js';
+        widgetScript.async = true;
+        const config = {
+            "symbol": symbol,
+            "width": "100%",
+            "locale": "pl",
+            "colorTheme": "light",
+            "isTransparent": true,
+            "displayMode": "regular"
+        };
+        widgetScript.innerHTML = JSON.stringify(config);
+        container.appendChild(widgetScript);
+    }
+
+    function updateChart(forceWidgetUpdate = false) {
+        if (database.length === 0) return;
+        const company = database[select.value];
+        const val = parseFloat(document.getElementById('shares').value) || 0;
+        const ownership = (val / company.total) * 100;
+
+        document.getElementById('total-shares-label').textContent = company.total.toLocaleString('pl-PL');
+        document.getElementById('percent-label').textContent = ownership.toFixed(4) + "%";
+        document.getElementById('exact-percent').textContent = ownership.toFixed(8) + "%";
+
+        // Pokazywanie zielonego paska tylko gdy ilość akcji > 0
+        document.getElementById('user-row').classList.toggle('hidden', val <= 0);
+
+        const visualPercent = ownership > 0 ? (Math.sqrt(ownership) * 10) : 0;
+        const offset = circumference - (Math.min(visualPercent, 100) / 100 * circumference);
+        circle.style.strokeDashoffset = offset;
+
+        if (company.symbol && (forceWidgetUpdate || company.symbol !== lastSymbol)) {
+            renderSymbolWidget(company.symbol);
+        }
+    }
+
+    loadData();
+</script>
+
+<script src="https://pl29142017.profitablecpmratenetwork.com/ec/a9/cc/eca9cc6af26093f9a6da7f0aaf7c437e.js"></script>
 
 </body>
 </html>
