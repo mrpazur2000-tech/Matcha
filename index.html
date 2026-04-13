@@ -11,7 +11,6 @@
         .progress-ring__circle { transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1); transform: rotate(-90deg); transform-origin: 50% 50%; }
         .card-container { background: white; border-radius: 2.5rem; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.15); overflow: hidden; width: 100%; max-width: 900px; }
 
-        /* Styl dla własnej listy rozwijanej */
         .dropdown-content { max-height: 250px; overflow-y: auto; z-index: 50; }
         .dropdown-item:hover { background-color: #f8fafc; color: #22c55e; }
         #user-row { transition: all 0.3s ease-in-out; }
@@ -79,7 +78,7 @@
                     <div>
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Dane rynkowe (Live)</p>
                         <div id="tv_symbol_info" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 min-h-[160px] flex items-center justify-center overflow-hidden text-center">
-                            <p class="text-slate-300 text-xs font-bold italic">Wybierz spółkę, aby zobaczyć kurs...</p>
+                            <p class="text-slate-300 text-xs font-bold italic">Wyszukaj spółkę, aby zobaczyć kurs...</p>
                         </div>
                         <div class="mt-6 space-y-4">
                             <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
@@ -88,9 +87,16 @@
                             </div>
                         </div>
                     </div>
-                    <p class="text-[9px] text-slate-400 leading-tight mt-6">Kursy dostarcza TradingView.</p>
+                    <p class="text-[9px] text-slate-400 leading-tight mt-6">
+                        Dane pochodzą z oficjalnych raportów okresowych spółek. Kursy i logotypy dostarcza TradingView.
+                    </p>
                 </div>
             </div>
+        </div>
+
+        <div class="w-full max-w-[900px] mt-8 bg-white/50 backdrop-blur-sm rounded-3xl p-6 border border-slate-200 text-center shadow-sm">
+            <script async="async" data-cfasync="false" src="https://pl29142016.profitablecpmratenetwork.com/9e80bada0f50a112678147baeec210fa/invoke.js"></script>
+            <div id="container-9e80bada0f50a112678147baeec210fa"></div>
         </div>
     </main>
 
@@ -142,6 +148,11 @@
         const term = input.value.toLowerCase();
         const filtered = database.filter(c => c.name.toLowerCase().includes(term));
         populateDropdown(filtered);
+
+        // Jeśli użytkownik wpisze coś, co nie pasuje do żadnej spółki, czyścimy wybór
+        if (!database.find(c => c.name === input.value)) {
+            selectedCompany = null;
+        }
     }
 
     function selectCompany(company) {
@@ -151,7 +162,6 @@
         updateChart();
     }
 
-    // Zamknij listę, gdy klikniesz poza nią
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.relative')) {
             dropdown.classList.add('hidden');
