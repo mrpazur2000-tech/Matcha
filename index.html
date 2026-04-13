@@ -5,13 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mój Procent - Inwestorski Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <meta name="description" content="Kalkulator akcji GPW - sprawdź jaki procent udziałów w spółce posiadasz. Kursy na żywo i dane o emisjach.">
-    <meta name="keywords" content="GPW, akcje, kalkulator akcji, giełda, mój procent, żabka, allegro">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; margin: 0; padding: 0; }
         .progress-ring__circle { transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1); transform: rotate(-90deg); transform-origin: 50% 50%; }
         .card-container { background: white; border-radius: 2.5rem; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.15); overflow: hidden; width: 100%; max-width: 900px; }
+
+        /* Styl dla własnej listy rozwijanej */
+        .dropdown-content { max-height: 250px; overflow-y: auto; z-index: 50; }
+        .dropdown-item:hover { background-color: #f8fafc; color: #22c55e; }
         #user-row { transition: all 0.3s ease-in-out; }
     </style>
 </head>
@@ -20,16 +22,10 @@
 <div class="max-w-[1400px] mx-auto flex flex-col lg:flex-row justify-center items-start gap-8">
 
     <aside class="hidden lg:block w-[160px] sticky top-10 h-fit">
-        <div class="bg-white/50 backdrop-blur-sm rounded-2xl p-0 border border-slate-200 text-center shadow-sm ad-slot overflow-hidden">
+        <div class="bg-white/50 backdrop-blur-sm rounded-2xl p-0 border border-slate-200 text-center shadow-sm overflow-hidden min-h-[600px]">
             <p class="text-[9px] font-bold text-slate-400 uppercase py-1">Reklama</p>
             <script>
-                atOptions = {
-                    'key' : 'd8504387dea9fe98f8b68e912138423c',
-                    'format' : 'iframe',
-                    'height' : 600,
-                    'width' : 160,
-                    'params' : {}
-                };
+                atOptions = { 'key' : 'd8504387dea9fe98f8b68e912138423c', 'format' : 'iframe', 'height' : 600, 'width' : 160, 'params' : {} };
             </script>
             <script src="https://www.highperformanceformat.com/d8504387dea9fe98f8b68e912138423c/invoke.js"></script>
         </div>
@@ -46,9 +42,14 @@
                     </div>
 
                     <div class="space-y-6">
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2">Wybierz spółkę</label>
-                            <select id="company-select" onchange="updateChart()" class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-bold text-slate-700 outline-none focus:border-green-500 transition-all shadow-sm"></select>
+                        <div class="relative">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2">Spółka</label>
+                            <input type="text" id="company-input" placeholder="Wybierz lub szukaj..."
+                                   class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-bold text-slate-700 outline-none focus:border-green-500 transition-all shadow-sm"
+                                   onclick="toggleDropdown()" oninput="filterDropdown()">
+
+                            <div id="dropdown-list" class="hidden absolute left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-xl dropdown-content">
+                                </div>
                         </div>
 
                         <div>
@@ -63,7 +64,7 @@
                             </svg>
                             <div class="absolute inset-0 flex flex-col items-center justify-center">
                                 <span id="percent-label" class="text-2xl font-black text-slate-800">0%</span>
-                                <span class="text-[8px] text-green-600 font-bold uppercase tracking-widest">Udział</span>
+                                <span class="text-[8px] text-green-600 font-bold uppercase tracking-widest text-center leading-tight">Teoretyczny<br>Udział</span>
                             </div>
                         </div>
 
@@ -77,45 +78,27 @@
                 <div class="p-8 bg-slate-50 flex flex-col justify-between">
                     <div>
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Dane rynkowe (Live)</p>
-
-                        <div id="tv_symbol_info" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 min-h-[160px] flex items-center justify-center overflow-hidden">
-                            <p class="text-slate-300 text-xs font-bold italic text-center">Wybierz spółkę...</p>
+                        <div id="tv_symbol_info" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 min-h-[160px] flex items-center justify-center overflow-hidden text-center">
+                            <p class="text-slate-300 text-xs font-bold italic">Wybierz spółkę, aby zobaczyć kurs...</p>
                         </div>
-
                         <div class="mt-6 space-y-4">
                             <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
                                 <p class="text-[9px] font-bold text-slate-400 uppercase">Łączna liczba akcji (Emisja)</p>
-                                <p id="total-shares-label" class="text-lg font-black text-slate-700">0</p>
+                                <p id="total-shares-label" class="text-lg font-black text-slate-700">---</p>
                             </div>
                         </div>
                     </div>
-
-                    <p class="text-[9px] text-slate-400 leading-tight mt-6">
-                        Dane pochodzą z oficjalnych raportów okresowych spółek. Kursy i logotypy dostarcza TradingView.
-                    </p>
+                    <p class="text-[9px] text-slate-400 leading-tight mt-6">Kursy dostarcza TradingView.</p>
                 </div>
-
             </div>
-        </div>
-
-        <div class="w-full max-w-[900px] mt-8 bg-white/50 backdrop-blur-sm rounded-3xl p-6 border border-slate-200 text-center">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Reklama</p>
-            <script async="async" data-cfasync="false" src="https://pl29142016.profitablecpmratenetwork.com/9e80bada0f50a112678147baeec210fa/invoke.js"></script>
-            <div id="container-9e80bada0f50a112678147baeec210fa"></div>
         </div>
     </main>
 
     <aside class="hidden lg:block w-[160px] sticky top-10 h-fit">
-        <div class="bg-white/50 backdrop-blur-sm rounded-2xl p-0 border border-slate-200 text-center shadow-sm ad-slot overflow-hidden">
+        <div class="bg-white/50 backdrop-blur-sm rounded-2xl p-0 border border-slate-200 text-center shadow-sm overflow-hidden min-h-[600px]">
             <p class="text-[9px] font-bold text-slate-400 uppercase py-1">Reklama</p>
             <script>
-                atOptions = {
-                    'key' : 'd8504387dea9fe98f8b68e912138423c',
-                    'format' : 'iframe',
-                    'height' : 600,
-                    'width' : 160,
-                    'params' : {}
-                };
+                atOptions = { 'key' : 'd8504387dea9fe98f8b68e912138423c', 'format' : 'iframe', 'height' : 600, 'width' : 160, 'params' : {} };
             </script>
             <script src="https://www.highperformanceformat.com/d8504387dea9fe98f8b68e912138423c/invoke.js"></script>
         </div>
@@ -125,66 +108,95 @@
 <script>
     const circle = document.getElementById('progress-circle');
     const circumference = 65 * 2 * Math.PI;
-    const select = document.getElementById('company-select');
+    const input = document.getElementById('company-input');
+    const dropdown = document.getElementById('dropdown-list');
     let database = [];
     let lastSymbol = "";
+    let selectedCompany = null;
 
     async function loadData() {
         try {
             const response = await fetch('spolki.json');
             database = await response.json();
-            database.forEach((company, index) => {
-                const opt = document.createElement('option');
-                opt.value = index;
-                opt.innerHTML = company.name;
-                select.appendChild(opt);
-            });
-            updateChart(true);
+            populateDropdown(database);
         } catch (e) { console.error(e); }
     }
 
-    function renderSymbolWidget(symbol) {
-        if (symbol === lastSymbol) return;
-        lastSymbol = symbol;
-
-        const container = document.getElementById('tv_symbol_info');
-        container.innerHTML = '';
-        const widgetScript = document.createElement('script');
-        widgetScript.type = 'text/javascript';
-        widgetScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-symbol-info.js';
-        widgetScript.async = true;
-        const config = {
-            "symbol": symbol,
-            "width": "100%",
-            "locale": "pl",
-            "colorTheme": "light",
-            "isTransparent": true,
-            "displayMode": "regular"
-        };
-        widgetScript.innerHTML = JSON.stringify(config);
-        container.appendChild(widgetScript);
+    function populateDropdown(list) {
+        dropdown.innerHTML = '';
+        list.forEach(company => {
+            const div = document.createElement('div');
+            div.className = 'dropdown-item px-4 py-3 cursor-pointer font-bold text-slate-700 text-sm transition-colors';
+            div.textContent = company.name;
+            div.onclick = () => selectCompany(company);
+            dropdown.appendChild(div);
+        });
     }
 
-    function updateChart(forceWidgetUpdate = false) {
-        if (database.length === 0) return;
-        const company = database[select.value];
-        const val = parseFloat(document.getElementById('shares').value) || 0;
-        const ownership = (val / company.total) * 100;
+    function toggleDropdown() {
+        dropdown.classList.toggle('hidden');
+    }
 
-        document.getElementById('total-shares-label').textContent = company.total.toLocaleString('pl-PL');
+    function filterDropdown() {
+        dropdown.classList.remove('hidden');
+        const term = input.value.toLowerCase();
+        const filtered = database.filter(c => c.name.toLowerCase().includes(term));
+        populateDropdown(filtered);
+    }
+
+    function selectCompany(company) {
+        selectedCompany = company;
+        input.value = company.name;
+        dropdown.classList.add('hidden');
+        updateChart();
+    }
+
+    // Zamknij listę, gdy klikniesz poza nią
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.relative')) {
+            dropdown.classList.add('hidden');
+        }
+    });
+
+    function updateChart() {
+        if (!selectedCompany) return;
+
+        const val = parseFloat(document.getElementById('shares').value) || 0;
+        const total = selectedCompany.total || selectedCompany.total_share;
+        const ownership = (val / total) * 100;
+
+        document.getElementById('total-shares-label').textContent = total.toLocaleString('pl-PL');
         document.getElementById('percent-label').textContent = ownership.toFixed(4) + "%";
         document.getElementById('exact-percent').textContent = ownership.toFixed(8) + "%";
-
-        // Pokazywanie zielonego paska tylko gdy ilość akcji > 0
         document.getElementById('user-row').classList.toggle('hidden', val <= 0);
 
         const visualPercent = ownership > 0 ? (Math.sqrt(ownership) * 10) : 0;
         const offset = circumference - (Math.min(visualPercent, 100) / 100 * circumference);
         circle.style.strokeDashoffset = offset;
 
-        if (company.symbol && (forceWidgetUpdate || company.symbol !== lastSymbol)) {
-            renderSymbolWidget(company.symbol);
+        if (selectedCompany.symbol) {
+            renderSymbolWidget(selectedCompany.symbol);
         }
+    }
+
+    function renderSymbolWidget(symbol) {
+        if (symbol === lastSymbol) return;
+        lastSymbol = symbol;
+        const container = document.getElementById('tv_symbol_info');
+        container.innerHTML = '';
+        const widgetContainer = document.createElement('div');
+        widgetContainer.className = 'tradingview-widget-container';
+        const widgetInner = document.createElement('div');
+        widgetInner.className = 'tradingview-widget-container__widget';
+        widgetContainer.appendChild(widgetInner);
+        const widgetScript = document.createElement('script');
+        widgetScript.type = 'text/javascript';
+        widgetScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-symbol-info.js';
+        widgetScript.async = true;
+        const config = { "symbol": symbol, "width": "100%", "locale": "pl", "colorTheme": "light", "isTransparent": true, "displayMode": "regular" };
+        widgetScript.innerHTML = JSON.stringify(config);
+        container.appendChild(widgetContainer);
+        container.appendChild(widgetScript);
     }
 
     loadData();
