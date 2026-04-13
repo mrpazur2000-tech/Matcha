@@ -8,15 +8,13 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2700099870089594"
      crossorigin="anonymous"></script>
     <style>
-        @import url('https://fontSs.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; margin: 0; padding: 0; }
         .progress-ring__circle { transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1); transform: rotate(-90deg); transform-origin: 50% 50%; }
         .card-container { background: white; border-radius: 2.5rem; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.15); overflow: hidden; width: 100%; max-width: 900px; }
-
         .dropdown-content { max-height: 250px; overflow-y: auto; z-index: 50; }
         .dropdown-item:hover { background-color: #f8fafc; color: #22c55e; }
         #user-row { transition: all 0.3s ease-in-out; }
-
     </style>
 </head>
 <body class="py-10 px-4">
@@ -36,7 +34,6 @@
     <main class="flex-1 w-full flex flex-col items-center">
         <div class="card-container">
             <div class="grid grid-cols-1 md:grid-cols-2">
-
                 <div class="p-8 border-b md:border-b-0 md:border-r border-slate-100">
                     <div class="mb-8">
                         <h1 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Mój Procent</h1>
@@ -49,9 +46,7 @@
                             <input type="text" id="company-input" placeholder="Wybierz lub szukaj..."
                                    class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-bold text-slate-700 outline-none focus:border-green-500 transition-all shadow-sm"
                                    onclick="toggleDropdown()" oninput="filterDropdown()">
-
-                            <div id="dropdown-list" class="hidden absolute left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-xl dropdown-content">
-                                </div>
+                            <div id="dropdown-list" class="hidden absolute left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-xl dropdown-content"></div>
                         </div>
 
                         <div>
@@ -70,9 +65,9 @@
                             </div>
                         </div>
 
-                        <div id="user-row" class="hidden bg-green-500 rounded-2xl p-4 shadow-lg shadow-green-200 mt-4">
-                            <p class="text-[9px] font-bold text-white/80 uppercase mb-1 text-center">Twój dokładny procent</p>
-                            <p id="exact-percent" class="text-sm font-mono font-bold text-white text-center">0.00000000%</p>
+                        <div id="user-row" class="hidden bg-green-500 rounded-2xl p-4 shadow-lg shadow-green-200 mt-4 text-center text-white">
+                            <p class="text-[9px] font-bold uppercase mb-1 opacity-80">Twój dokładny procent</p>
+                            <p id="exact-percent" class="text-sm font-mono font-bold">0.00000000%</p>
                         </div>
                     </div>
                 </div>
@@ -98,9 +93,18 @@
         </div>
 
         <div class="w-full max-w-[900px] mt-8 bg-white/50 backdrop-blur-sm rounded-3xl p-6 border border-slate-200 text-center shadow-sm">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Reklama</p>
             <script async="async" data-cfasync="false" src="https://pl29142016.profitablecpmratenetwork.com/9e80bada0f50a112678147baeec210fa/invoke.js"></script>
             <div id="container-9e80bada0f50a112678147baeec210fa"></div>
         </div>
+
+        <footer class="w-full mt-10 pb-10 text-center text-[10px] text-slate-400 font-medium uppercase tracking-widest">
+            <p class="mb-2">&copy; 2026 Mój Procent - Wszystkie prawa zastrzeżone</p>
+            <div class="flex justify-center gap-4">
+                <a href="/polityka.html" class="hover:text-green-500 transition-colors underline">Polityka Prywatności</a>
+                <a href="mailto:kontakt@mojprocent.pl" class="hover:text-green-500 transition-colors underline">Kontakt</a>
+            </div>
+        </footer>
     </main>
 
     <aside class="hidden lg:block w-[160px] sticky top-10 h-fit">
@@ -142,20 +146,14 @@
         });
     }
 
-    function toggleDropdown() {
-        dropdown.classList.toggle('hidden');
-    }
+    function toggleDropdown() { dropdown.classList.toggle('hidden'); }
 
     function filterDropdown() {
         dropdown.classList.remove('hidden');
         const term = input.value.toLowerCase();
         const filtered = database.filter(c => c.name.toLowerCase().includes(term));
         populateDropdown(filtered);
-
-        // Jeśli użytkownik wpisze coś, co nie pasuje do żadnej spółki, czyścimy wybór
-        if (!database.find(c => c.name === input.value)) {
-            selectedCompany = null;
-        }
+        if (!database.find(c => c.name === input.value)) { selectedCompany = null; }
     }
 
     function selectCompany(company) {
@@ -166,30 +164,22 @@
     }
 
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.relative')) {
-            dropdown.classList.add('hidden');
-        }
+        if (!e.target.closest('.relative')) { dropdown.classList.add('hidden'); }
     });
 
     function updateChart() {
         if (!selectedCompany) return;
-
         const val = parseFloat(document.getElementById('shares').value) || 0;
         const total = selectedCompany.total || selectedCompany.total_share;
         const ownership = (val / total) * 100;
-
         document.getElementById('total-shares-label').textContent = total.toLocaleString('pl-PL');
         document.getElementById('percent-label').textContent = ownership.toFixed(4) + "%";
         document.getElementById('exact-percent').textContent = ownership.toFixed(8) + "%";
         document.getElementById('user-row').classList.toggle('hidden', val <= 0);
-
         const visualPercent = ownership > 0 ? (Math.sqrt(ownership) * 10) : 0;
         const offset = circumference - (Math.min(visualPercent, 100) / 100 * circumference);
         circle.style.strokeDashoffset = offset;
-
-        if (selectedCompany.symbol) {
-            renderSymbolWidget(selectedCompany.symbol);
-        }
+        if (selectedCompany.symbol) { renderSymbolWidget(selectedCompany.symbol); }
     }
 
     function renderSymbolWidget(symbol) {
@@ -211,7 +201,6 @@
         container.appendChild(widgetContainer);
         container.appendChild(widgetScript);
     }
-
     loadData();
 </script>
 
