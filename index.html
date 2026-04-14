@@ -3,38 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Mój Procent - Kalkulator Udziałów GPW | Akcjonariat na Żywo</title>
-    <meta name="description" content="Sprawdź swój teoretyczny udział w spółkach giełdowych. Darmowy kalkulator akcji dla inwestorów GPW. Sprawdź akcjonariat Dino, Orlenu i innych.">
-    <meta name="keywords" content="kalkulator akcji, udział w spółce, GPW, giełda, akcjonariat, inwestowanie, Dino Polska, Orlen">
-    <meta name="author" content="Mój Procent">
-
-    <meta property="og:title" content="Mój Procent - Ile masz akcji w spółce?">
-    <meta property="og:description" content="Szybki kalkulator udziałów w akcjonariacie spółek giełdowych.">
-    <meta property="og:image" content="favicon.png">
-    <meta property="og:type" content="website">
-
+    <title>Mój Procent - Inwestorski Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2700099870089594" crossorigin="anonymous"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; margin: 0; padding: 0; }
+        .progress-ring__circle { transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1); transform: rotate(-90deg); transform-origin: 50% 50%; }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f1f5f9;
-            margin: 0;
-            padding: 0;
-        }
-
-        .progress-ring__circle {
-            transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
-            transform: rotate(-90deg);
-            transform-origin: 50% 50%;
-        }
-
-        /* Zwiększona szerokość kontenera dla balansu wizualnego */
+        /* Poszerzony kontener dla lepszego układu dashboardu */
         .card-container {
             background: white;
             border-radius: 2.5rem;
@@ -47,20 +25,18 @@
         .dropdown-content { max-height: 250px; overflow-y: auto; z-index: 50; }
         .dropdown-item:hover { background-color: #f8fafc; color: #22c55e; }
 
-        #user-row { transition: all 0.3s ease-in-out; }
-
-        /* Animacja dla segmentów wykresu kołowego po prawej */
+        /* Animacja dla segmentów wykresu kołowego */
         #donut-segments circle {
             transition: stroke-dasharray 0.8s ease, stroke-dashoffset 0.8s ease;
+            transform: rotate(-90deg);
+            transform-origin: center;
         }
     </style>
-
     <link rel="icon" href="favicon.png" type="image/png">
-    <link rel="shortcut icon" href="favicon.png" type="image/png">
 </head>
 <body class="py-10 px-4">
 
-<div class="max-w-[1400px] mx-auto flex flex-col lg:flex-row justify-center items-start gap-8">
+<div class="max-w-[1500px] mx-auto flex flex-col lg:flex-row justify-center items-start gap-8">
 
     <aside class="hidden lg:block w-[160px] sticky top-10 h-fit">
         <div class="bg-white/50 backdrop-blur-sm rounded-2xl p-0 border border-slate-200 text-center shadow-sm overflow-hidden min-h-[600px]">
@@ -74,17 +50,18 @@
 
     <main class="flex-1 w-full flex flex-col items-center">
         <div class="card-container">
-            <div class="grid grid-cols-1 md:grid-cols-2">
-                <div class="p-8 border-b md:border-b-0 md:border-r border-slate-100">
+            <div class="grid grid-cols-1 md:grid-cols-2 items-stretch">
+
+                <div class="p-8 border-b md:border-b-0 md:border-r border-slate-100 flex flex-col h-full">
                     <div class="mb-8">
                         <h1 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Mój Procent</h1>
                         <p class="text-slate-400 text-[10px] uppercase font-bold tracking-widest">Kalkulator Udziałów</p>
                     </div>
 
-                    <div class="space-y-6">
+                    <div class="space-y-6 flex-grow flex flex-col">
                         <div class="relative">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2">Spółka</label>
-                            <input type="text" id="company-input" placeholder="Wybierz lub szukaj..."
+                            <input type="text" id="company-input" placeholder="Wyszukaj spółkę GPW..."
                                    class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-bold text-slate-700 outline-none focus:border-green-500 transition-all shadow-sm"
                                    onclick="toggleDropdown()" oninput="filterDropdown()">
                             <div id="dropdown-list" class="hidden absolute left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-xl dropdown-content"></div>
@@ -92,55 +69,74 @@
 
                         <div>
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2">Twoje akcje</label>
-                            <input type="number" id="shares" placeholder="Wpisz ilość..." class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 text-xl font-bold text-slate-700 focus:border-green-500 outline-none transition-all shadow-sm" oninput="updateChart()">
+                            <input type="number" id="shares" placeholder="Ile masz sztuk?"
+                                   class="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 text-xl font-bold text-slate-700 focus:border-green-500 outline-none transition-all shadow-sm"
+                                   oninput="updateChart()">
                         </div>
 
-                        <div class="relative flex items-center justify-center py-4">
-                            <svg width="150" height="150">
-                                <circle stroke="#f1f5f9" stroke-width="10" fill="transparent" r="65" cx="75" cy="75"/>
-                                <circle id="progress-circle" class="progress-ring__circle" stroke="#22c55e" stroke-width="10" stroke-linecap="round" fill="transparent" r="65" cx="75" cy="75" style="stroke-dasharray: 408.4; stroke-dashoffset: 408.4;"/>
+                        <div class="relative flex items-center justify-center py-8 my-auto">
+                            <svg width="160" height="160">
+                                <circle stroke="#f1f5f9" stroke-width="12" fill="transparent" r="70" cx="80" cy="80"/>
+                                <circle id="progress-circle" class="progress-ring__circle" stroke="#22c55e" stroke-width="12" stroke-linecap="round" fill="transparent" r="70" cx="80" cy="80" style="stroke-dasharray: 439.8; stroke-dashoffset: 439.8;"/>
                             </svg>
                             <div class="absolute inset-0 flex flex-col items-center justify-center">
                                 <span id="percent-label" class="text-2xl font-black text-slate-800">0%</span>
-                                <span class="text-[8px] text-green-600 font-bold uppercase tracking-widest text-center leading-tight">Teoretyczny<br>Udział</span>
+                                <span class="text-[8px] text-green-600 font-bold uppercase tracking-widest text-center leading-tight">Twój<br>Udział</span>
                             </div>
                         </div>
 
-                        <div id="user-row" class="hidden bg-green-500 rounded-2xl p-4 shadow-lg shadow-green-200 mt-4 text-center text-white">
-                            <p class="text-[9px] font-bold uppercase mb-1 opacity-80">Twój dokładny procent</p>
+                        <div id="user-row" class="hidden bg-green-500 rounded-2xl p-4 shadow-lg shadow-green-200 mt-auto text-center text-white">
+                            <p class="text-[9px] font-bold uppercase mb-1 opacity-80">Dokładna wartość procentowa</p>
                             <p id="exact-percent" class="text-sm font-mono font-bold">0.00000000%</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="p-8 bg-slate-50 flex flex-col justify-between">
-                    <div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Dane rynkowe (Live)</p>
-                        <div id="tv_symbol_info" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 min-h-[160px] flex items-center justify-center overflow-hidden text-center">
-                            <p class="text-slate-300 text-xs font-bold italic">Wyszukaj spółkę, aby zobaczyć kurs...</p>
+                <div class="p-8 bg-slate-50 flex flex-col h-full">
+                    <div class="space-y-6">
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Rynek Live (TradingView)</p>
+                            <div id="tv_symbol_info" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 min-h-[160px] flex items-center justify-center overflow-hidden">
+                                <p class="text-slate-300 text-xs font-bold italic text-center">Wybierz spółkę z listy po lewej...</p>
+                            </div>
                         </div>
-                        <div class="mt-6 space-y-4">
-                            <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
-                                <p class="text-[9px] font-bold text-slate-400 uppercase">Łączna liczba akcji (Emisja)</p>
-                                <p id="total-shares-label" class="text-lg font-black text-slate-700">---</p>
+
+                        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm text-center">
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Całkowita liczba akcji (Emisja)</p>
+                            <p id="total-shares-label" class="text-xl font-black text-slate-700">---</p>
+                        </div>
+
+                        <div id="ownership-container" class="hidden bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">Pełna Struktura Kapitału</p>
+
+                            <div class="flex flex-col sm:flex-row items-center gap-8">
+                                <div class="relative flex-shrink-0">
+                                    <svg viewBox="0 0 36 36" class="w-32 h-32">
+                                        <circle cx="18" cy="18" r="15.9" fill="#f1f5f9" />
+                                        <g id="donut-segments"></g>
+                                    </svg>
+                                </div>
+
+                                <div id="ownership-legend" class="w-full space-y-3">
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <p class="text-[9px] text-slate-400 leading-tight mt-6">
-                        Dane pochodzą z oficjalnych raportów okresowych spółek. Kursy i logotypy dostarcza TradingView.
+
+                    <p class="text-[9px] text-slate-400 leading-tight mt-auto pt-8 italic text-center">
+                        Dane pochodzą z raportów GPW. Kursy dostarcza TradingView.
                     </p>
                 </div>
             </div>
         </div>
 
         <div class="w-full max-w-[900px] mt-8 bg-white/50 backdrop-blur-sm rounded-3xl p-6 border border-slate-200 text-center shadow-sm">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Reklama</p>
             <script async="async" data-cfasync="false" src="https://pl29142016.profitablecpmratenetwork.com/9e80bada0f50a112678147baeec210fa/invoke.js"></script>
             <div id="container-9e80bada0f50a112678147baeec210fa"></div>
         </div>
 
         <footer class="w-full mt-10 pb-10 text-center text-[10px] text-slate-400 font-medium uppercase tracking-widest">
-            <p class="mb-2">&copy; 2026 Mój Procent - Wszystkie prawa zastrzeżone</p>
+            <p class="mb-2">&copy; 2026 Mój Procent - Inwestorski Niezbędnik</p>
             <div class="flex justify-center gap-4">
                 <a href="/polityka.html" class="hover:text-green-500 transition-colors underline">Polityka Prywatności</a>
                 <a href="mailto:kontakt@mojprocent.pl" class="hover:text-green-500 transition-colors underline">Kontakt</a>
@@ -161,12 +157,17 @@
 
 <script>
     const circle = document.getElementById('progress-circle');
-    const circumference = 65 * 2 * Math.PI;
+    const circumference = 70 * 2 * Math.PI;
     const input = document.getElementById('company-input');
     const dropdown = document.getElementById('dropdown-list');
+
     let database = [];
     let lastSymbol = "";
     let selectedCompany = null;
+
+    const chartColors = ['#334155', '#475569', '#64748b', '#94a3b8'];
+    const colorYou = '#22c55e';
+    const colorFree = '#e2e8f0';
 
     async function loadData() {
         try {
@@ -180,7 +181,7 @@
         dropdown.innerHTML = '';
         list.forEach(company => {
             const div = document.createElement('div');
-            div.className = 'dropdown-item px-4 py-3 cursor-pointer font-bold text-slate-700 text-sm transition-colors';
+            div.className = 'dropdown-item px-4 py-3 cursor-pointer font-bold text-slate-700 text-sm transition-colors border-b border-slate-50 last:border-0';
             div.textContent = company.name;
             div.onclick = () => selectCompany(company);
             dropdown.appendChild(div);
@@ -194,7 +195,6 @@
         const term = input.value.toLowerCase();
         const filtered = database.filter(c => c.name.toLowerCase().includes(term));
         populateDropdown(filtered);
-        if (!database.find(c => c.name === input.value)) { selectedCompany = null; }
     }
 
     function selectCompany(company) {
@@ -204,23 +204,81 @@
         updateChart();
     }
 
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.relative')) { dropdown.classList.add('hidden'); }
-    });
-
-    function updateChart() {
+    async function updateChart() {
         if (!selectedCompany) return;
+
         const val = parseFloat(document.getElementById('shares').value) || 0;
         const total = selectedCompany.total || selectedCompany.total_share;
         const ownership = (val / total) * 100;
+
         document.getElementById('total-shares-label').textContent = total.toLocaleString('pl-PL');
         document.getElementById('percent-label').textContent = ownership.toFixed(4) + "%";
         document.getElementById('exact-percent').textContent = ownership.toFixed(8) + "%";
         document.getElementById('user-row').classList.toggle('hidden', val <= 0);
+
         const visualPercent = ownership > 0 ? (Math.sqrt(ownership) * 10) : 0;
         const offset = circumference - (Math.min(visualPercent, 100) / 100 * circumference);
         circle.style.strokeDashoffset = offset;
+
         if (selectedCompany.symbol) { renderSymbolWidget(selectedCompany.symbol); }
+
+        try {
+            const response = await fetch(`/api/udzialowcy?id=${selectedCompany.id || 0}`);
+            const shareholders = await response.json();
+            renderOwnershipStructure(shareholders);
+        } catch (e) {
+            renderOwnershipStructure([]);
+        }
+    }
+
+    function renderOwnershipStructure(shareholders) {
+        const container = document.getElementById('ownership-container');
+        const donutG = document.getElementById('donut-segments');
+        const legend = document.getElementById('ownership-legend');
+
+        container.classList.remove('hidden');
+        donutG.innerHTML = '';
+        legend.innerHTML = '';
+
+        let totalInstShares = 0;
+        let accumulatedPerc = 0;
+
+        shareholders.forEach((s, i) => {
+            const p = (s.liczba_akcji / selectedCompany.total) * 100;
+            totalInstShares += s.liczba_akcji;
+            addSegment(donutG, p, accumulatedPerc, chartColors[i % 4]);
+            legend.innerHTML += createLegendItem(chartColors[i % 4], s.nazwa_podmiotu, p.toFixed(2));
+            accumulatedPerc += p;
+        });
+
+        const userShares = parseFloat(document.getElementById('shares').value) || 0;
+        const userP = (userShares / selectedCompany.total) * 100;
+        if (userP > 0) {
+            addSegment(donutG, userP, accumulatedPerc, colorYou, 4);
+            legend.innerHTML += createLegendItem(colorYou, "TWÓJ UDZIAŁ", userP.toFixed(2), true);
+            accumulatedPerc += userP;
+        }
+
+        const freeP = 100 - accumulatedPerc;
+        if (freeP > 0) {
+            addSegment(donutG, freeP, accumulatedPerc, colorFree);
+            legend.innerHTML += createLegendItem(colorFree, "POZOSTALI / FREE FLOAT", freeP.toFixed(2), false, "text-slate-400");
+        }
+    }
+
+    function addSegment(el, percent, offset, color, width = 3) {
+        const circleHtml = `<circle cx="18" cy="18" r="15.915" fill="none" stroke="${color}" stroke-width="${width}" stroke-dasharray="${percent} ${100 - percent}" stroke-dashoffset="${-offset}"></circle>`;
+        el.innerHTML += circleHtml;
+    }
+
+    function createLegendItem(color, name, perc, isYou = false, cls = "text-slate-700") {
+        return `<div class="flex items-center justify-between text-[11px] font-bold ${isYou ? 'text-green-600' : cls}">
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full" style="background-color:${color}"></div>
+                <span class="truncate max-w-[120px]">${name}</span>
+            </div>
+            <span>${perc}%</span>
+        </div>`;
     }
 
     function renderSymbolWidget(symbol) {
@@ -228,24 +286,19 @@
         lastSymbol = symbol;
         const container = document.getElementById('tv_symbol_info');
         container.innerHTML = '';
-        const widgetContainer = document.createElement('div');
-        widgetContainer.className = 'tradingview-widget-container';
-        const widgetInner = document.createElement('div');
-        widgetInner.className = 'tradingview-widget-container__widget';
-        widgetContainer.appendChild(widgetInner);
         const widgetScript = document.createElement('script');
-        widgetScript.type = 'text/javascript';
         widgetScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-symbol-info.js';
         widgetScript.async = true;
-        const config = { "symbol": symbol, "width": "100%", "locale": "pl", "colorTheme": "light", "isTransparent": true, "displayMode": "regular" };
-        widgetScript.innerHTML = JSON.stringify(config);
-        container.appendChild(widgetContainer);
+        widgetScript.innerHTML = JSON.stringify({
+            "symbol": symbol, "width": "100%", "locale": "pl", "colorTheme": "light", "isTransparent": true, "displayMode": "regular"
+        });
         container.appendChild(widgetScript);
     }
+
     loadData();
+    document.addEventListener('click', (e) => { if (!e.target.closest('.relative')) dropdown.classList.add('hidden'); });
 </script>
 
 <script src="https://pl29142017.profitablecpmratenetwork.com/ec/a9/cc/eca9cc6af26093f9a6da7f0aaf7c437e.js"></script>
-
 </body>
 </html>
