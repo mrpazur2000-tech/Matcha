@@ -3,19 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mój Procent - Inwestorski Dashboard</title>
+
+    <title>Mój Procent - Kalkulator Udziałów GPW | Akcjonariat na Żywo</title>
+    <meta name="description" content="Sprawdź swój teoretyczny udział w spółkach giełdowych. Darmowy kalkulator akcji dla inwestorów GPW. Sprawdź akcjonariat Dino, Orlenu i innych.">
+    <meta name="keywords" content="kalkulator akcji, udział w spółce, GPW, giełda, akcjonariat, inwestowanie, Dino Polska, Orlen">
+    <meta name="author" content="Mój Procent">
+
+    <meta property="og:title" content="Mój Procent - Ile masz akcji w spółce?">
+    <meta property="og:description" content="Szybki kalkulator udziałów w akcjonariacie spółek giełdowych.">
+    <meta property="og:image" content="favicon.png">
+    <meta property="og:type" content="website">
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2700099870089594"
-     crossorigin="anonymous"></script>
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2700099870089594" crossorigin="anonymous"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; margin: 0; padding: 0; }
-        .progress-ring__circle { transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1); transform: rotate(-90deg); transform-origin: 50% 50%; }
-        .card-container { background: white; border-radius: 2.5rem; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.15); overflow: hidden; width: 100%; max-width: 900px; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .progress-ring__circle {
+            transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        /* Zwiększona szerokość kontenera dla balansu wizualnego */
+        .card-container {
+            background: white;
+            border-radius: 2.5rem;
+            box-shadow: 0 30px 60px -12px rgba(0,0,0,0.15);
+            overflow: hidden;
+            width: 100%;
+            max-width: 1100px;
+        }
+
         .dropdown-content { max-height: 250px; overflow-y: auto; z-index: 50; }
         .dropdown-item:hover { background-color: #f8fafc; color: #22c55e; }
+
         #user-row { transition: all 0.3s ease-in-out; }
+
+        /* Animacja dla segmentów wykresu kołowego po prawej */
+        #donut-segments circle {
+            transition: stroke-dasharray 0.8s ease, stroke-dashoffset 0.8s ease;
+        }
     </style>
+
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="shortcut icon" href="favicon.png" type="image/png">
 </head>
