@@ -212,14 +212,14 @@ function renderOwnership(shareholders) {
 
     if (!companyTotal) return;
 
-    // 1. Liczymy sumę akcji wszystkich dużych udziałowców z bazy
+    // 1. Liczymy sumę akcji dużych udziałowców z bazy
     const largeShareholdersTotalActions = shareholders.reduce((sum, s) => sum + s.liczba_akcji, 0);
 
-    // 2. Liczymy ile akcji zostaje dla "reszty"
+    // 2. Liczymy resztę
     const otherActions = companyTotal - largeShareholdersTotalActions;
     const otherPerc = ((otherActions / companyTotal) * 100).toFixed(2);
 
-    // 3. Generujemy paski dla dużych graczy (tych z bazy)
+    // 3. Generujemy paski dla dużych graczy
     let html = shareholders.map(s => {
         const perc = ((s.liczba_akcji / companyTotal) * 100).toFixed(2);
         const isSP = s.nazwa_podmiotu.toLowerCase().includes("skarb państwa");
@@ -237,7 +237,7 @@ function renderOwnership(shareholders) {
             </div>`;
     }).join('');
 
-    // 4. Dodajemy na sam koniec automatyczny pasek dla małych inwestorów
+    // 4. Pasek dla małych inwestorów
     if (otherActions > 0) {
         html += `
             <div class="group pt-2 border-t border-slate-100 mt-2">
@@ -253,15 +253,29 @@ function renderOwnership(shareholders) {
 
     list.innerHTML = html;
 
-    // 5. Aktualizacja badge'a kapitału polskiego
+    // --- NOWA LOGIKA BADGE'A ---
+
+    // Liczymy procenty konkretnie oznaczonych grup
     const plTotal = shareholders
         .filter(s => s.is_polish === 1)
         .reduce((sum, s) => sum + (s.liczba_akcji / companyTotal * 100), 0);
 
-    if (plTotal > 0) {
+    const foreignTotal = shareholders
+        .filter(s => s.is_polish === 0)
+        .reduce((sum, s) => sum + (s.liczba_akcji / companyTotal * 100), 0);
+
+    // Warunek: jeśli w bazie nie ma ŻADNEGO udziałowca (>5%), piszemy "Brak danych"
+    if (shareholders.length === 0) {
+        badge.textContent = "Brak danych";
+        badge.className = "text-[10px] font-black px-3 py-1 bg-slate-100 text-slate-400 rounded-full uppercase";
+    }
+    // Jeśli dominują polscy akcjonariusze
+    else if (plTotal >= foreignTotal) {
         badge.textContent = plTotal.toFixed(1) + "% Polski";
         badge.className = "text-[10px] font-black px-3 py-1 bg-red-100 text-red-600 rounded-full border border-red-200 uppercase tracking-tighter shadow-sm";
-    } else {
+    }
+    // Jeśli dominują zagraniczni
+    else {
         badge.textContent = "Kap. Zagraniczny";
         badge.className = "text-[10px] font-black px-3 py-1 bg-blue-50 text-blue-600 rounded-full border border-blue-100 uppercase tracking-tighter";
     }
