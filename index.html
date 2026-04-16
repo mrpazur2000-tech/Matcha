@@ -205,48 +205,67 @@
         }
     }
 
-    function renderOwnership(shareholders) {
-        const list = document.getElementById('shareholders-list');
-        const badge = document.getElementById('pl-capital-badge');
-        const companyTotal = selectedCompany.total_shares;
+function renderOwnership(shareholders) {
+    const list = document.getElementById('shareholders-list');
+    const badge = document.getElementById('pl-capital-badge');
+    const companyTotal = selectedCompany.total_shares;
 
-        if (!shareholders || shareholders.length === 0 || !companyTotal) {
-            list.innerHTML = '<p class="text-slate-300 text-[11px] font-bold text-center py-10 uppercase tracking-widest">Mali Inwestorzy</p>';
-            badge.textContent = "Brak danych";
-            badge.className = "text-[10px] font-black px-3 py-1 bg-slate-100 text-slate-400 rounded-full uppercase";
-            return;
-        }
+    if (!companyTotal) return;
 
-        list.innerHTML = shareholders.map(s => {
-            const perc = ((s.liczba_akcji / companyTotal) * 100).toFixed(2);
-            const isSP = s.nazwa_podmiotu.toLowerCase().includes("skarb państwa");
-            const barColor = isSP ? "bg-red-600" : "bg-slate-400";
+    // 1. Liczymy sumę akcji wszystkich dużych udziałowców z bazy
+    const largeShareholdersTotalActions = shareholders.reduce((sum, s) => sum + s.liczba_akcji, 0);
 
-            return `
-                <div class="group ${isSP ? 'border-l-4 border-red-500 pl-3 -ml-4 py-1 rounded-l-lg bg-red-50' : ''}">
-                    <div class="flex justify-between text-[11px] mb-1">
-                        <span class="font-bold ${isSP ? 'text-red-700' : 'text-slate-600'} truncate mr-2">${s.nazwa_podmiotu}</span>
-                        <span class="${isSP ? 'text-red-900 font-extrabold' : 'text-slate-900 font-black'}">${perc}%</span>
-                    </div>
-                    <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden shadow-inner border border-slate-200">
-                        <div class="${barColor} h-full rounded-full transition-all duration-1000" style="width: ${perc}%"></div>
-                    </div>
-                </div>`;
-        }).join('');
+    // 2. Liczymy ile akcji zostaje dla "reszty"
+    const otherActions = companyTotal - largeShareholdersTotalActions;
+    const otherPerc = ((otherActions / companyTotal) * 100).toFixed(2);
 
-        // Liczenie kapitału polskiego
-        const plTotal = shareholders
-            .filter(s => s.is_polish === 1)
-            .reduce((sum, s) => sum + (s.liczba_akcji / companyTotal * 100), 0);
+    // 3. Generujemy paski dla dużych graczy (tych z bazy)
+    let html = shareholders.map(s => {
+        const perc = ((s.liczba_akcji / companyTotal) * 100).toFixed(2);
+        const isSP = s.nazwa_podmiotu.toLowerCase().includes("skarb państwa");
+        const barColor = isSP ? "bg-red-600" : "bg-slate-400";
 
-        if (plTotal > 0) {
-            badge.textContent = plTotal.toFixed(1) + "% Polski";
-            badge.className = "text-[10px] font-black px-3 py-1 bg-red-100 text-red-600 rounded-full border border-red-200 uppercase tracking-tighter shadow-sm";
-        } else {
-            badge.textContent = "Kap. Zagraniczny";
-            badge.className = "text-[10px] font-black px-3 py-1 bg-blue-50 text-blue-600 rounded-full border border-blue-100 uppercase tracking-tighter";
-        }
+        return `
+            <div class="group ${isSP ? 'border-l-4 border-red-500 pl-3 -ml-4 py-1 rounded-l-lg bg-red-50' : ''}">
+                <div class="flex justify-between text-[11px] mb-1">
+                    <span class="font-bold ${isSP ? 'text-red-700' : 'text-slate-600'} truncate mr-2">${s.nazwa_podmiotu}</span>
+                    <span class="${isSP ? 'text-red-900 font-extrabold' : 'text-slate-900 font-black'}">${perc}%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden shadow-inner border border-slate-200">
+                    <div class="${barColor} h-full rounded-full transition-all duration-1000" style="width: ${perc}%"></div>
+                </div>
+            </div>`;
+    }).join('');
+
+    // 4. Dodajemy na sam koniec automatyczny pasek dla małych inwestorów
+    if (otherActions > 0) {
+        html += `
+            <div class="group pt-2 border-t border-slate-100 mt-2">
+                <div class="flex justify-between text-[11px] mb-1">
+                    <span class="font-bold text-slate-400 truncate mr-2 italic">Pozostali (poniżej 5%)</span>
+                    <span class="text-slate-500 font-bold">${otherPerc}%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden shadow-inner">
+                    <div class="bg-slate-300 h-full rounded-full" style="width: ${otherPerc}%"></div>
+                </div>
+            </div>`;
     }
+
+    list.innerHTML = html;
+
+    // 5. Aktualizacja badge'a kapitału polskiego
+    const plTotal = shareholders
+        .filter(s => s.is_polish === 1)
+        .reduce((sum, s) => sum + (s.liczba_akcji / companyTotal * 100), 0);
+
+    if (plTotal > 0) {
+        badge.textContent = plTotal.toFixed(1) + "% Polski";
+        badge.className = "text-[10px] font-black px-3 py-1 bg-red-100 text-red-600 rounded-full border border-red-200 uppercase tracking-tighter shadow-sm";
+    } else {
+        badge.textContent = "Kap. Zagraniczny";
+        badge.className = "text-[10px] font-black px-3 py-1 bg-blue-50 text-blue-600 rounded-full border border-blue-100 uppercase tracking-tighter";
+    }
+}
 
     function renderSymbolWidget(symbol) {
         if (symbol === lastSymbol) return;
